@@ -21,6 +21,7 @@ import static com.google.errorprone.BugPattern.SeverityLevel.ERROR;
 import static com.google.errorprone.matchers.Matchers.allOf;
 import static com.google.errorprone.matchers.Matchers.anyOf;
 import static com.google.errorprone.matchers.method.MethodMatchers.instanceMethod;
+import static com.google.errorprone.matchers.method.MethodMatchers.staticMethod;
 import static com.google.errorprone.util.ASTHelpers.isSameType;
 
 import com.google.errorprone.BugPattern;
@@ -94,9 +95,19 @@ public class ReturnValueIgnored extends AbstractReturnValueIgnored {
   private static final Matcher<ExpressionTree> STREAM_METHOD =
       instanceMethod().onDescendantOf("java.util.stream.BaseStream");
 
+  private static final Matcher<ExpressionTree> EXTRA_METHODS =
+      anyOf(
+        instanceMethod().onDescendantOf("java.lang.Object").named("equals"),
+        instanceMethod().onDescendantOf("java.lang.Object").named("hashCode"),
+        instanceMethod().onExactClass("java.lang.Integer").named("compareTo"),
+        instanceMethod().onExactClass("java.lang.Long").named("compareTo"),
+        instanceMethod().onDescendantOf("java.util.Collection").named("get"),
+        instanceMethod().onDescendantOf("java.util.Collection").named("size"),
+        instanceMethod().onDescendantOf("java.util.Map").named("get"));
+
   @Override
   public Matcher<? super ExpressionTree> specializedMatcher() {
-    return anyOf(RETURNS_SAME_TYPE, FUNCTIONAL_METHOD, STREAM_METHOD);
+    return anyOf(RETURNS_SAME_TYPE, FUNCTIONAL_METHOD, STREAM_METHOD, EXTRA_METHODS);
   }
 
   /** Matches method invocations that return the same type as the receiver object. */
